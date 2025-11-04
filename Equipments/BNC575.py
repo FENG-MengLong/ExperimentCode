@@ -47,7 +47,7 @@ class BNC575:
         print(f"Pulses number: {N}")
         print("---------------------------------------")
 
-    def channel_set(self, channel: str, width, delay, SYNC="TO", MUX="-1"):
+    def channel_set(self, channel: str, width, delay, AMP = "TTL", SYNC="TO", MUX="-1"):
         ch_dic = {"A":1, "B":2, "C":3, "D":4, "E":5, "F":6, "G":7, "H":8}
         MUX_dic = {"A":1, "B":2, "C":4, "D":8, "E":16, "F":32, "G":64, "H":128}
         BMUX = int(MUX,2)
@@ -63,9 +63,12 @@ class BNC575:
         self.pyvisa.query("*OPC?")
         self.pyvisa.write(f":Pulse{ch_num}:Delay {delay}")
         self.pyvisa.query("*OPC?")
-        self.pyvisa.write(f":Pulse{ch_num}:Output:Mode TTL")
+        if AMP == "TTL":
+            self.pyvisa.write(f":Pulse{ch_num}:Output:Mode TTL")
+        elif 5<=AMP<=20:   
+            self.pyvisa.write(f":Pulse{ch_num}:Output:Mode ADJ")
+            self.pyvisa.write(f":Pulse{ch_num}:Output:AMPL {AMP}")
         self.pyvisa.query("*OPC?")
-		# self.pyvisa.write(f":Pulse{ch_num}:Output:AMP {AMP}")
         self.pyvisa.write(f":Pulse{ch_num}:SYNC {SYNC}")
         self.pyvisa.query("*OPC?")
         self.pyvisa.write(f":Pulse{ch_num}:CMode Normal")
@@ -80,7 +83,13 @@ class BNC575:
         self.pyvisa.query("*OPC?")
         D = float(self.pyvisa.query(f":Pulse{ch_dic[channel]}:Delay?")[:-2])
         self.pyvisa.query("*OPC?")
-        # A = self.pyvisa.query(f":Pulse{ch_dic[channel]}:Output:AMP?")
+        OM = self.pyvisa.query(f":Pulse{ch_dic[channel]}:Output:Mode?")
+        self.pyvisa.query("*OPC?")
+        if OM == "ADJ\r\n":
+            A = self.pyvisa.query(f":Pulse{ch_dic[channel]}:Output:AMPL?")
+        else:
+            A = "TTL\r\n"
+        self.pyvisa.query("*OPC?")
         S = self.pyvisa.query(f":Pulse{ch_dic[channel]}:SYNC?")[:-2]
         self.pyvisa.query("*OPC?")
         M = bin(int(self.pyvisa.query(f":Pulse{ch_dic[channel]}:MUX?")))[2:]
@@ -91,6 +100,7 @@ class BNC575:
         print(f"Width: {W:.4e}s")
         print(f"Delay: {D:.4e}s")
         print(f"Synchronize to: {S}")
+        print(f"Out: {A}")
         print("Output timers:\nHGFEDCBA")
         print(M.zfill(8))
         print("---------------------------------------")
