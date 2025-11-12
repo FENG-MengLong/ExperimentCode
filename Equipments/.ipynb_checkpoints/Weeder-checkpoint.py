@@ -97,31 +97,57 @@ class Weeder:
 
 	# moves stepper motor to a specific position 
     # position = 0 to 2^24 - 1 = 16,777,215
+	# def move(self, header: str, position: int):
+	# 	step_min = 1000
+	# 	step_max = 5000
+
+	# 	if position > step_max:
+	# 		return print("The desired position exceeds the maximum allowed position.")
+	# 	elif position < step_min:
+	# 		return print("The desired position falls below the minimum allowed position.")
+	# 	else:	
+	# 		# check current position
+	# 		current_position = self.position(header, query = True)[1:]
+	# 		current_position = self.position(header, query = True)[1:]
+	# 		current_position = self.position(header, query = True)[1:]
+	# 		#print(current_position)
+			
+	# 		# modify stepper motor position
+	# 		self.pyvisa.write(header + "M" + str(position) + "\r")
+	
+	# 		# check that the change went through
+	# 		new_position = self.position(header, query = True)[1:]
+	# 		new_position = self.position(header, query = True)[1:]
+	# 		new_position = self.position(header, query = True)[1:]
+	# 		#print(new_position)
+			
+	# 		return current_position, new_position
+
 	def move(self, header: str, position: int):
 		step_min = 1000
 		step_max = 5000
 
 		if position > step_max:
-			return print("The desired position exceeds the maximum allowed position.")
+			raise RuntimeError("The desired position exceeds the maximum allowed position. Set the motor position below {}.".format(step_max))
 		elif position < step_min:
-			return print("The desired position falls below the minimum allowed position.")
-		else:	
+			raise RuntimeError("The desired position falls below the minimum allowed position. Set the motor position above {}.".format(step_min))
+		else:
 			# check current position
 			current_position = self.position(header, query = True)[1:]
 			current_position = self.position(header, query = True)[1:]
 			current_position = self.position(header, query = True)[1:]
-			#print(current_position)
+			#print("Current position: {}".format(current_position))
 			
 			# modify stepper motor position
 			self.pyvisa.write(header + "M" + str(position) + "\r")
-	
+			
 			# check that the change went through
 			new_position = self.position(header, query = True)[1:]
 			new_position = self.position(header, query = True)[1:]
 			new_position = self.position(header, query = True)[1:]
-			#print(new_position)
-			
-			return current_position, new_position
+			#print("New position: {}".format(new_position))
+
+			return print("Current position: {}\nNew position: {}".format(current_position, new_position))
 
 	# moves stepper motor one step in a specific direction
     # direction = + or -
