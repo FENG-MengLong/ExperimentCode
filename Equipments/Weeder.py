@@ -57,7 +57,7 @@ class Weeder:
 		idle_current = self.idle(header = "A", query = True)[2:]
 
 		# save the motor position to file
-		with open(r"X:\migratedData\Data\motor1.txt",'w') as file:
+		with open(r"X:\migratedData\Data\motor.txt",'w') as file:
 			file.write(str(current_position))
 
 		# used if you want to save other motor settings
@@ -98,8 +98,30 @@ class Weeder:
 	# moves stepper motor to a specific position 
     # position = 0 to 2^24 - 1 = 16,777,215
 	def move(self, header: str, position: int):
-		self.pyvisa.write(header + "M" + str(position) + "\r")
-		return self.pyvisa.read("\r")
+		step_min = 1000
+		step_max = 5000
+
+		if position > step_max:
+			return print("The desired position exceeds the maximum allowed position.")
+		elif position < step_min:
+			return print("The desired position falls below the minimum allowed position.")
+		else:	
+			# check current position
+			current_position = self.position(header, query = True)[1:]
+			current_position = self.position(header, query = True)[1:]
+			current_position = self.position(header, query = True)[1:]
+			#print(current_position)
+			
+			# modify stepper motor position
+			self.pyvisa.write(header + "M" + str(position) + "\r")
+	
+			# check that the change went through
+			new_position = self.position(header, query = True)[1:]
+			new_position = self.position(header, query = True)[1:]
+			new_position = self.position(header, query = True)[1:]
+			#print(new_position)
+			
+			return current_position, new_position
 
 	# moves stepper motor one step in a specific direction
     # direction = + or -
