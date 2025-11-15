@@ -48,13 +48,18 @@ class BNC575:
         print("---------------------------------------")
 
     def channel_set(self, channel: str, width, delay, AMP = "TTL", SYNC="TO", MUX="-1"):
+        '''
+        Used to setup one channel
+        what need to do next: write a check function, if the corresponding setup fail, retry
+        '''
         ch_dic = {"A":1, "B":2, "C":3, "D":4, "E":5, "F":6, "G":7, "H":8}
         MUX_dic = {"A":1, "B":2, "C":4, "D":8, "E":16, "F":32, "G":64, "H":128}
         BMUX = int(MUX,2)
         if channel not in ch_dic:
             print("Invalid channel.")
             return
-
+            
+        # set up the channel
         ch_num = ch_dic[channel]
         
         self.pyvisa.write(f":Pulse{ch_num}:State on")
@@ -63,6 +68,8 @@ class BNC575:
         self.pyvisa.query("*OPC?")
         self.pyvisa.write(f":Pulse{ch_num}:Delay {delay}")
         self.pyvisa.query("*OPC?")
+
+        # set up the output mode: TTL or adjustable (for out standard BNC575 model, no difference, both are 50 ohm impedance)
         if AMP == "TTL":
             self.pyvisa.write(f":Pulse{ch_num}:Output:Mode TTL")
         elif 5<=AMP<=20:   
@@ -72,13 +79,16 @@ class BNC575:
         self.pyvisa.write(f":Pulse{ch_num}:SYNC {SYNC}")
         self.pyvisa.query("*OPC?")
         self.pyvisa.write(f":Pulse{ch_num}:CMode Normal")
+
+        # set up the output MUX
         if 0 < BMUX < 256:
             self.pyvisa.write(f":Pulse{ch_dic[channel]}:MUX {BMUX}")
             self.pyvisa.query("*OPC?")
         else:
             self.pyvisa.write(f":Pulse{ch_dic[channel]}:MUX {MUX_dic[channel]}")
             self.pyvisa.query("*OPC?")
-        	
+
+        # after set up, query the result
         W = float(self.pyvisa.query(f":Pulse{ch_dic[channel]}:Width?")[:-2])
         self.pyvisa.query("*OPC?")
         D = float(self.pyvisa.query(f":Pulse{ch_dic[channel]}:Delay?")[:-2])
@@ -104,6 +114,20 @@ class BNC575:
         print("Output timers:\nHGFEDCBA")
         print(M.zfill(8))
         print("---------------------------------------")
+
+    def pulse_sequence_setup(self,pulse_sequence):
+        '''
+        This method is used to send the pulse sequence to the BNC 575 hardware
+        This method is based on the channel_set method
+        '''
+        time_marker = 0
+        for idn, pulse in enumerate(pulse_sequence):
+            pulse_channel = pulse[0]
+            pulse_width = pulse[1]
+            relative_delay = pulse[2]
+            time_marker = time_marker + relative_delay
+            pulse_output = pulse[3]
+            self.channel_set(channel=pulse_channel,width=pulse_width,delay=time_marker,AMP=pulse_output)
 
     def start_pulses(self):
         self.pyvisa.write(":Pulse0:State on")
