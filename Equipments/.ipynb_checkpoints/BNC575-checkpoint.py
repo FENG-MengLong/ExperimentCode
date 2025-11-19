@@ -121,13 +121,18 @@ class BNC575:
         This method is based on the channel_set method
         '''
         time_marker = 0
+        self.disarm_all()
+        self.disable_all()
         for idn, pulse in enumerate(pulse_sequence):
             pulse_channel = pulse[0]
             pulse_width = pulse[1]
             relative_delay = pulse[2]
-            time_marker = time_marker + relative_delay
+    
+            # print(time_marker)
             pulse_output = pulse[3]
             self.channel_set(channel=pulse_channel,width=pulse_width,delay=time_marker,AMP=pulse_output)
+            time_marker = time_marker + relative_delay + pulse_width
+        self.rearm_all()
 
     def start_pulses(self):
         self.pyvisa.write(":Pulse0:State on")

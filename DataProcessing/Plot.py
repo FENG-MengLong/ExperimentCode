@@ -154,7 +154,7 @@ def validate_input(x,y,Z):
         if len(Z) != len(x):
             raise ValueError("1D Z must have same length as x.")
         Z = Z.reshape(1, -1)
-        
+
     if Z.shape != (len(y), len(x)):
         raise ValueError(f"Z shape {Z.shape} must be (len(y), len(x)) = ({len(y)}, {len(x)})")
 

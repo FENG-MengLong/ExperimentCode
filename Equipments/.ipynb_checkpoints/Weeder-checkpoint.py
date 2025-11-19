@@ -18,6 +18,7 @@ Before every command in this class is an explanation of what it does. More infor
 """
 
 import pyvisa
+import time
 
 class Weeder:
 	# defines and discovers stepper motor
@@ -123,9 +124,14 @@ class Weeder:
 			
 	# 		return current_position, new_position
 
+	def sleep(self, step_change):
+		slope = 0.02 # 20 ms/step
+		return slope*step_change
+		
+		
 	def move(self, header: str, position: int):
 		step_min = 1000
-		step_max = 5000
+		step_max = 20000
 
 		if position > step_max:
 			raise RuntimeError("The desired position exceeds the maximum allowed position. Set the motor position below {}.".format(step_max))
@@ -137,9 +143,15 @@ class Weeder:
 			current_position = self.position(header, query = True)[1:]
 			current_position = self.position(header, query = True)[1:]
 			#print("Current position: {}".format(current_position))
+
+			step_change = abs(int(current_position) - position)
 			
 			# modify stepper motor position
 			self.pyvisa.write(header + "M" + str(position) + "\r")
+
+			time_to_wait = self.sleep(step_change)
+
+			time.sleep(time_to_wait)
 			
 			# check that the change went through
 			new_position = self.position(header, query = True)[1:]
@@ -147,8 +159,41 @@ class Weeder:
 			new_position = self.position(header, query = True)[1:]
 			#print("New position: {}".format(new_position))
 
-			return print("Current position: {}\nNew position: {}".format(current_position, new_position))
+			return print("Old position: {}\nNew position: {}".format(current_position, new_position))
 
+	def advance(self, header: str, num_step: int):
+		step_min = 1000
+		step_max = 20000
+		
+		# check the current position
+		current_position = self.position(header, query = True)[1:]
+		current_position = self.position(header, query = True)[1:]
+		current_position = self.position(header, query = True)[1:]
+		current_position = int(current_position)
+		#print("Current position: {}".format(current_position))
+
+		step_change = abs(num_step)
+
+		new_position = current_position + num_step
+
+		if new_position > step_max:
+			raise RuntimeError("The desired position exceeds the maximum allowed position. Set the motor position below {}.".format(step_max))
+		elif new_position < step_min:
+			raise RuntimeError("The desired position falls below the minimum allowed position. Set the motor position above {}.".format(step_min))
+		else:
+			# move stepper motor by num_step number of steps
+			self.pyvisa.write(header + "M" + str(current_position + num_step) + "\r")
+			time_to_wait = self.sleep(step_change)
+			time.sleep(time_to_wait)
+			
+			# check that the change went through
+			new_position = self.position(header, query = True)[1:]
+			new_position = self.position(header, query = True)[1:]
+			new_position = self.position(header, query = True)[1:]
+			#print("New position: {}".format(new_position))
+	
+			#return print("Old position: {}\nNew position: {}".format(current_position, new_position))
+			
 	# moves stepper motor one step in a specific direction
     # direction = + or -
 	def step (self, header: str, direction: str):
