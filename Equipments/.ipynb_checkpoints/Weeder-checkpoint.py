@@ -161,6 +161,14 @@ class Weeder:
 
 			return print("Old position: {}\nNew position: {}".format(current_position, new_position))
 
+	# only used within the scan loop and after checking the moving range manually
+	def move_direct(self, header: str, position: int):
+			
+		self.pyvisa.write(header + "M" + str(position) + "\r")
+		# self.position(header, query = True)
+		# self.position(header, query = True)
+		# self.position(header, query = True)
+
 	def advance(self, header: str, num_step: int):
 		step_min = 1000
 		step_max = 20000
@@ -187,9 +195,9 @@ class Weeder:
 			time.sleep(time_to_wait)
 			
 			# check that the change went through
-			new_position = self.position(header, query = True)[1:]
-			new_position = self.position(header, query = True)[1:]
-			new_position = self.position(header, query = True)[1:]
+			# new_position = self.position(header, query = True)[1:]
+			# new_position = self.position(header, query = True)[1:]
+			# new_position = self.position(header, query = True)[1:]
 			#print("New position: {}".format(new_position))
 	
 			#return print("Old position: {}\nNew position: {}".format(current_position, new_position))

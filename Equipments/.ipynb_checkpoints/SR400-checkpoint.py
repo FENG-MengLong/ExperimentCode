@@ -231,7 +231,7 @@ class SR400:
             if read_success == False:
                 counts.append(-2)
 
-        print(counts)
+        # print(counts)
         return counts
         
     ### below are the methods for discriminators
