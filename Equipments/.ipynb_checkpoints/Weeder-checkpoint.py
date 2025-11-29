@@ -96,40 +96,12 @@ class Weeder:
 		else:
 			self.pyvisa.write(header + "P" + str(position) + "\r")
 
-	# moves stepper motor to a specific position 
-    # position = 0 to 2^24 - 1 = 16,777,215
-	# def move(self, header: str, position: int):
-	# 	step_min = 1000
-	# 	step_max = 5000
-
-	# 	if position > step_max:
-	# 		return print("The desired position exceeds the maximum allowed position.")
-	# 	elif position < step_min:
-	# 		return print("The desired position falls below the minimum allowed position.")
-	# 	else:	
-	# 		# check current position
-	# 		current_position = self.position(header, query = True)[1:]
-	# 		current_position = self.position(header, query = True)[1:]
-	# 		current_position = self.position(header, query = True)[1:]
-	# 		#print(current_position)
-			
-	# 		# modify stepper motor position
-	# 		self.pyvisa.write(header + "M" + str(position) + "\r")
-	
-	# 		# check that the change went through
-	# 		new_position = self.position(header, query = True)[1:]
-	# 		new_position = self.position(header, query = True)[1:]
-	# 		new_position = self.position(header, query = True)[1:]
-	# 		#print(new_position)
-			
-	# 		return current_position, new_position
-
 	def sleep(self, step_change):
 		slope = 0.02 # 20 ms/step
 		return slope*step_change
 		
-		
-	def move(self, header: str, position: int):
+
+	def move(self, header: str, position: int, progress = True):
 		step_min = 1000
 		step_max = 20000
 
@@ -138,41 +110,25 @@ class Weeder:
 		elif position < step_min:
 			raise RuntimeError("The desired position falls below the minimum allowed position. Set the motor position above {}.".format(step_min))
 		else:
-			# check current position
-			current_position = self.position(header, query = True)[1:]
-			current_position = self.position(header, query = True)[1:]
-			current_position = self.position(header, query = True)[1:]
-			#print("Current position: {}".format(current_position))
+			current_position = int(self.position(header, query = True)[1:])
 
-			step_change = abs(int(current_position) - position)
-			
-			# modify stepper motor position
-			self.pyvisa.write(header + "M" + str(position) + "\r")
+			step_change = position - current_position
 
-			time_to_wait = self.sleep(step_change)
+			for i in range(abs(step_change)):
+				self.step(header, "+" if step_change > 0 else "-")
+				if progress:
+					print(f"start at {current_position} --> {(i+1) * abs(step_change)/step_change + current_position} --> {position}",end= "\r",flush= True)
 
-			time.sleep(time_to_wait)
-			
-			# check that the change went through
 			new_position = self.position(header, query = True)[1:]
-			new_position = self.position(header, query = True)[1:]
-			new_position = self.position(header, query = True)[1:]
-			#print("New position: {}".format(new_position))
+			print(f"\nOld position: {current_position}\nNew position: {new_position}" )
 
-			return print("Old position: {}\nNew position: {}".format(current_position, new_position))
-
-	def advance(self, header: str, num_step: int):
+	def advance(self, header: str, num_step: int, progress = True):
 		step_min = 1000
 		step_max = 20000
 		
 		# check the current position
-		current_position = self.position(header, query = True)[1:]
-		current_position = self.position(header, query = True)[1:]
-		current_position = self.position(header, query = True)[1:]
-		current_position = int(current_position)
+		current_position = int(self.position(header, query = True)[1:])
 		#print("Current position: {}".format(current_position))
-
-		step_change = abs(num_step)
 
 		new_position = current_position + num_step
 
@@ -182,17 +138,14 @@ class Weeder:
 			raise RuntimeError("The desired position falls below the minimum allowed position. Set the motor position above {}.".format(step_min))
 		else:
 			# move stepper motor by num_step number of steps
-			self.pyvisa.write(header + "M" + str(current_position + num_step) + "\r")
-			time_to_wait = self.sleep(step_change)
-			time.sleep(time_to_wait)
-			
-			# check that the change went through
+			for i in range(abs(num_step)):
+				self.step(header, "+" if num_step > 0 else "-")
+				if progress:
+					print(f"start at {current_position} --> {(i+1) * abs(num_step)/num_step + current_position} --> {new_position}",end= "\r",flush= True)
+
 			new_position = self.position(header, query = True)[1:]
-			new_position = self.position(header, query = True)[1:]
-			new_position = self.position(header, query = True)[1:]
-			#print("New position: {}".format(new_position))
-	
-			#return print("Old position: {}\nNew position: {}".format(current_position, new_position))
+			print(f"\nOld position: {current_position}\nNew position: {new_position}" )
+
 			
 	# moves stepper motor one step in a specific direction
     # direction = + or -

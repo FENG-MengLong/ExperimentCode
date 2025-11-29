@@ -175,7 +175,7 @@ class SR400:
                 print("invalid position from the read_count")
                 return -1
         except Exception as e:
-            print(f"[Error] read_count failed: {e}")
+            # print(f"[Error] read_count failed: {e}")
             self.flush_stale_response()
             return -2
 
@@ -189,21 +189,21 @@ class SR400:
                 if last_count > -1:
                     break  # success
                 if last_count == -2:
-                    print("Warning: exception on final point read")
+                    # print("Warning: exception on final point read")
                     retries += 1
             except Exception as e:
-                print(f"Warning: exception on final point read: {e}")
+                # print(f"Warning: exception on final point read: {e}")
                 time.sleep(retry_delay)
                 retries += 1
             time.sleep(0.05)
 			
-        if retries != 0:
-            print(f"But get the final point successfully at the {retries+1} retry")
+        # if retries != 0:
+        #     print(f"But get the final point successfully at the {retries+1} retry")
 
         if last_count == -1:
             raise TimeoutError(f"Failed to read final scan point (position {length}) after {max_retries} retries.")
 
-        print(f"One entire measurement is done, the last count is {last_count}")
+        # print(f"One entire measurement is done, the last count is {last_count}")
 
         # Proceed to read the full array
         counts = []
@@ -231,7 +231,7 @@ class SR400:
             if read_success == False:
                 counts.append(-2)
 
-        print(counts)
+        # print(counts)
         return counts
         
     ### below are the methods for discriminators
@@ -311,6 +311,6 @@ class SR400:
         try:
             while True:
                 junk = self.pyvisa.read()
-                print(f"[Flush] Flushed: {repr(junk)}")
+                # print(f"[Flush] Flushed: {repr(junk)}")
         except:
             pass  # Ends when buffer is empty or times out
