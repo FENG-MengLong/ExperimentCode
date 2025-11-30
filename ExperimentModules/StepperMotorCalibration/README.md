@@ -6,13 +6,13 @@ $$\begin{align*}
 f &= F(V)
 \end{align*}$$
 
-For F-P cavity, the resonant peaks are noted as $f_{0m}$, $m$ represents the order of the peak. So when scanning the PZT voltage using a triangular wave, we can see a series peaks with a symmetric axis at the center.![[assets/file_20251129203828012.png]]The position of the peak satisfies the $$\begin{align*}
+For F-P cavity, the resonant peaks are noted as $f_{0m}$, $m$ represents the order of the peak. So when scanning the PZT voltage using a triangular wave, we can see a series peaks with a symmetric axis at the center.![](assets/file_20251129203828012.png)The position of the peak satisfies the $$\begin{align*}
 f_{0m} &= F(V_{0m})
 \end{align*}$$
 We can use the peak positions and FSR to estimate the function $F$
 
 Then we can move the stepper motors, the peaks will move with the stepper motor. Use the step = 0 as the fitting data, we can get an estimation of $F$, **do not average over each steps.**
-![[assets/file_20251129203907386.png]]
+![](assets/file_20251129203907386.png)
 **$F$ can be linear or parabola depending on how accurate you want**
 
 ## Estimate the frequency change
@@ -21,6 +21,6 @@ After get $F$, set the step=0 as the start point, calculate the frequency change
 ## Calculate the amount of frequency change per step
 After get the frequency changes, do linear fit with respect to steps and average the slopes.
 **The slope is the calibration factor**
-![[assets/file_20251129203857985.png]]
+![](assets/file_20251129203857985.png)
 
 
