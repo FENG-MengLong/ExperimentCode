@@ -12,7 +12,7 @@ f_{0m} &= F(V_{0m})
 We can use the peak positions and FSR to estimate the function $F$
 
 Then we can move the stepper motors, the peaks will move with the stepper motor. For each stepper motor position, we can get an estimation of $F$, then average them.
-![[Pasted image 20251129184303.png]]
+![Pasted image 20251129184303.png]
 **$F$ can be linear or parabola depending on how accurate you want**
 
 ## Estimate the frequency change
