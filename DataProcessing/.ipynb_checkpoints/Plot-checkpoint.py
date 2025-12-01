@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 import pandas as pd
 from datetime import datetime
 import os, re, hashlib
@@ -192,23 +193,49 @@ def _get_plot_id(x, y, Z, xlabel, ylabel, zlabel, save_dir, today_str):
 
 # Plot function
 def _showPlot3D(x, y, Z, xlabel, ylabel, zlabel, title, figsize, cmap, notes):
-	fig, ax = plt.subplots(figsize=figsize)
+	width, height = figsize
+	extra_bottom = 3
+	fig = plt.figure(figsize=(width,height+extra_bottom))
+
+	ax = fig.add_axes([0.12, extra_bottom/(height+extra_bottom),
+                       0.78, height/(height+extra_bottom)])
+
+	ax_notes = fig.add_axes([0.05, 0.01,
+							 0.90, (extra_bottom-1)/(height+extra_bottom)])
+	ax_notes.axis("off")
+
+
 	mesh = ax.pcolormesh(x, y, Z, shading='auto', cmap=cmap)
 	cbar = plt.colorbar(mesh, ax=ax)
 	cbar.set_label(zlabel)
 	ax.set_xlabel(xlabel)
 	ax.set_ylabel(ylabel)
 	ax.set_title(title)
-	plt.tight_layout()
 
 	# --- display notes ---
 	if notes:
 		notes_text = "\n".join(f"{k}: {v}" for k, v in notes.items())
-		plt.gcf().text(0.01, 0.01, notes_text, fontsize=10, ha='left', va='bottom')
+		ax_notes.text(
+				0.01, 0.95,           # top-left of notes box
+				notes_text,
+				ha='left',
+				va='top',
+				fontsize=12,
+		)
+		
 	plt.show()
 
 def _showPlot2D(x, y, Z, xlabel, ylabel, zlabel, title, figsize, cmap, y_index, y_value, notes):
-	fig, ax = plt.subplots(figsize=figsize)
+	width, height = figsize
+	extra_bottom = 3
+	fig = plt.figure(figsize=(width,height+extra_bottom))
+
+	ax = fig.add_axes([0.12, extra_bottom/(height+extra_bottom),
+                       0.78, height/(height+extra_bottom)])
+
+	ax_notes = fig.add_axes([0.05, 0.01,
+							 0.90, (extra_bottom-1)/(height+extra_bottom)])
+	ax_notes.axis("off")   
 
 	# --- Handle y_index as single int or (start, end) range ---
 	if y_index is not None:
@@ -244,12 +271,19 @@ def _showPlot2D(x, y, Z, xlabel, ylabel, zlabel, title, figsize, cmap, y_index, 
 	ax.set_title(title)
 	if y is not None:
 		ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize=10)
-	plt.tight_layout()
 
 	# --- display notes ---
 	if notes:
 		notes_text = "\n".join(f"{k}: {v}" for k, v in notes.items())
-		plt.gcf().text(0.01, 0.01, notes_text, fontsize=10, ha='left', va='bottom')
+		ax_notes.text(
+				0.01, 0.95,           # top-left of notes box
+				notes_text,
+				ha='left',
+				va='top',
+				fontsize=12,
+        )
+
+	# fig.tight_layout()
 	plt.show()
 
 def _save_csv(x, y, Z, xlabel, ylabel, zlabel, data_hash, plot_id, csv_filename, today_display, notes):

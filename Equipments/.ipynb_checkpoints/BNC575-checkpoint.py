@@ -48,6 +48,8 @@ class BNC575:
 		print(f"Pulses number: {N}")
 		print("---------------------------------------")
 
+		return f"{P:.2e}"
+
 	def channel_set(self, channel: str, width, delay, AMP="TTL", SYNC="TO", MUX="-1"):
 		ch_dic = {"A":1, "B":2, "C":3, "D":4, "E":5, "F":6, "G":7, "H":8}
 		MUX_dic = {"A":1, "B":2, "C":4, "D":8, "E":16, "F":32, "G":64, "H":128}
@@ -112,6 +114,9 @@ class BNC575:
 		print("---------------------------------------")
 
 	def expand_pulses(self, pulse_arrangement):
+		"""
+		use to expand the relative pulse sequence design to absolute pulse sequence, which can be recognized by bnc575
+		"""
 		expanded_pulses = []
 		time_marker = 0
 
@@ -155,6 +160,7 @@ class BNC575:
 			self.channel_set(pulse_channel, pulse_width, delay, pulse_output)
 
 		self.rearm_all()
+		return expanded_pulses
 
 	def start_pulses(self):
 		self.pyvisa.write(":Pulse0:State on")
