@@ -63,7 +63,7 @@ class MCBOX():
             print(f'The following error occurred: {e}')
 
     # used to output a single voltage value to one channel
-    def set_voltage_1chan(self, board_num: int, channel: int, voltage: float, bipolar = False):
+    def set_voltage_1chan(self, board_num: int, channel: int, voltage: float, bipolar = False, display = True):
         try:
             if bipolar:
                 ao_range = ULRange.BIP10VOLTS
@@ -77,7 +77,9 @@ class MCBOX():
                 #print(f'DAC code (unipolar): {V_out}')
                 
             ul.a_out(board_num, channel, ao_range, V_out)  # the board doesn't like ul.v_out() even though it should do the same thing; all voltages except 0 get mapped to 10 V
-            return print(f'Channel {channel} has been set to {voltage} V.')
+            if display:
+	            print(f'Channel {channel} has been set to {voltage} V.')
+            # return 
         except Exception as e:
             print(f'The following error occurred: {e}')
 
