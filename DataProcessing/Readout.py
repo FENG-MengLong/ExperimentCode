@@ -3,6 +3,7 @@ import numpy as np
 import re
 import json
 
+
 def read_saved_csv(filename):
     """
     Reads your custom CSV file saved by PlotSaver.
@@ -67,3 +68,68 @@ def read_saved_csv(filename):
         x = df["x"].values
         Z = df["z"].values
         return x, None, Z, meta
+
+
+from datetime import datetime
+import os
+import re
+
+def _normalize_date_to_yyyymmdd(date):
+    """
+    Accepts:
+      - '20251211'
+      - '2025-12-11'
+      - '2025/12/11'
+      - datetime object
+    Returns:
+      'YYYYMMDD' string.
+    """
+    if isinstance(date, datetime):
+        return date.strftime("%Y%m%d")
+    elif isinstance(date, str):
+        # keep only digits
+        digits = re.sub(r"[^0-9]", "", date)
+        if len(digits) != 8:
+            raise ValueError(f"Cannot parse date string '{date}' to YYYYMMDD")
+        return digits
+    else:
+        raise TypeError(f"Unsupported date type: {type(date)}")
+
+
+def build_csv_path(root_dir, date, plot_id):
+    """
+    Build the CSV path consistent with PlotSaver:
+      root_dir / YYYY / MM / DD / YYYYMMDD_ID{plot_id}.csv
+
+    Inputs:
+      - root_dir: same as PlotSaver.root_dir
+      - date: 'YYYYMMDD', 'YYYY-MM-DD', 'YYYY/MM/DD', or datetime
+      - plot_id: integer ID
+
+    Returns:
+      - full path to the CSV file (string)
+    """
+    date_str = _normalize_date_to_yyyymmdd(date)
+    year = date_str[0:4]
+    month = date_str[4:6]
+    day = date_str[6:8]
+
+    filename = f"{date_str}_ID{int(plot_id)}.csv"
+    full_path = os.path.join(root_dir, year, month, day, filename)
+    return full_path
+
+
+def read_saved_csv_by_id(root_dir, date, plot_id):
+    """
+    Convenience wrapper:
+    Given root_dir + date + plot_id, follow PlotSaver's folder structure
+    and call `read_saved_csv` on the resolved CSV file.
+
+    Returns:
+      x, y, Z, meta_dict (same as read_saved_csv)
+    """
+    csv_path = build_csv_path(root_dir, date, plot_id)
+    if not os.path.exists(csv_path):
+        raise FileNotFoundError(f"CSV file not found: {csv_path}")
+
+    return read_saved_csv(csv_path)
