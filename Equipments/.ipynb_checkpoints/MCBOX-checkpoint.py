@@ -1,5 +1,6 @@
 from mcculw import ul
 from mcculw.enums import ULRange, BoardInfo, InfoType, InterfaceType, DigitalPortType, ChannelType, ScanOptions
+import numpy as np
 class MCBOX():
     # device discovery, board number assignment, ignore voltages ranges from Instacal
     def __init__(self, find_device: str, use_device_detection = True):
@@ -140,3 +141,31 @@ class MCBOX():
             return print('Voltage scans complete.')
         except Exception as e:
             print(f'The following error occurred: {e}')
+
+def generate_test_voltages(voltages):   
+    # set range for allowed voltages from MC box
+    vmin, vmax = -10.0, 10.0
+    
+    if voltages[0] < vmin:
+        voltages[0] = vmin
+    elif voltages[0] > vmax:
+        voltages[0] = vmax
+
+    if voltages[-1] < vmin:
+        voltages[-1] = vmin
+    elif voltages[-1] > vmax:
+        voltages[-1] = vmax
+
+    if len(voltages) % 2 == 1:
+        setpoint = voltages[len(voltages) // 2]
+
+    elif len(voltages) % 2 == 0:
+        setpoint = (voltages[len(voltages)//2] + voltages[len(voltages)//2 + 1])/2
+        
+    diff_max = abs(setpoint - voltages[-1])
+    diff_min = abs(setpoint - voltages[0])
+    diff = min(diff_min, diff_max)
+    
+    new_voltages = np.linspace(setpoint-diff, setpoint+diff, len(voltages))
+    
+    return new_voltages

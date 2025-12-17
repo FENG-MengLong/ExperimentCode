@@ -1,6 +1,7 @@
 import pyvisa
 import time
 
+
 class BNC575:
 	def __init__(self, visa_name, timeout=5000):
 		rm = pyvisa.ResourceManager()
