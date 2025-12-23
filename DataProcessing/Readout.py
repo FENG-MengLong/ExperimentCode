@@ -1,7 +1,8 @@
 import pandas as pd
 import numpy as np
 import re
-import json
+import os
+from datetime import datetime
 
 
 def read_saved_csv(filename):
@@ -69,10 +70,6 @@ def read_saved_csv(filename):
         Z = df["z"].values
         return x, None, Z, meta
 
-
-from datetime import datetime
-import os
-import re
 
 def _normalize_date_to_yyyymmdd(date):
     """
