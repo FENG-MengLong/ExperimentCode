@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
 import pandas as pd
 from datetime import datetime
 import os, re, hashlib
