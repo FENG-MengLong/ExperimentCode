@@ -42,12 +42,12 @@ class BNC575:
 		else:
 			N = "N/A"
 
-		print("---------------------------------------")
+		print("-"*60)
 		print("The global clock is set to:")
 		print(f"Mode: {M}")
 		print(f"Period: {P:.2e}s")
 		print(f"Pulses number: {N}")
-		print("---------------------------------------")
+		print("-"*60)
 
 		return f"{P:.2e}"
 
@@ -104,7 +104,7 @@ class BNC575:
 		M = bin(int(self.pyvisa.query(f":Pulse{ch_num}:MUX?")))[2:]
 		self.pyvisa.query("*OPC?")
 
-		print("---------------------------------------")
+		print("-"*60)
 		print(f"The channel {channel} is set to:")
 		print(f"Width: {W:.4e}s")
 		print(f"Delay: {D:.4e}s")
@@ -112,7 +112,7 @@ class BNC575:
 		print(f"Out: {A}")
 		print("Output timers:\nHGFEDCBA")
 		print(M.zfill(8))
-		print("---------------------------------------")
+		print("-"*60)
 
 	def expand_pulses(self, pulse_arrangement):
 		"""
