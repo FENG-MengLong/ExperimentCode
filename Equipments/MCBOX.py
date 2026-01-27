@@ -145,7 +145,8 @@ class MCBOX():
 def generate_test_voltages(voltages):   
     # set range for allowed voltages from MC box
     vmin, vmax = -10.0, 10.0
-    
+
+	# check if endpoints lie outside MC box voltage range
     if voltages[0] < vmin:
         voltages[0] = vmin
     elif voltages[0] > vmax:
@@ -156,16 +157,18 @@ def generate_test_voltages(voltages):
     elif voltages[-1] > vmax:
         voltages[-1] = vmax
 
+	# recover the voltage setpoint 
     if len(voltages) % 2 == 1:
         setpoint = voltages[len(voltages) // 2]
-
     elif len(voltages) % 2 == 0:
         setpoint = (voltages[len(voltages)//2] + voltages[len(voltages)//2 + 1])/2
-        
+
+	# calculate difference between the endpoints and the setpoint, keep the smaller of the two numbers
     diff_max = abs(setpoint - voltages[-1])
     diff_min = abs(setpoint - voltages[0])
     diff = min(diff_min, diff_max)
-    
+
+	# return a new voltage array centered around the setpoint with a range of 2*diff
     new_voltages = np.linspace(setpoint-diff, setpoint+diff, len(voltages))
     
     return new_voltages
