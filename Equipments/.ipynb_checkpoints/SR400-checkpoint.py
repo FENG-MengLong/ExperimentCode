@@ -1,19 +1,72 @@
-'''
-4/25/2025
-The class below is used to drive the photon counter SR400, the most common used functions are: counter_set, read_count and disc_level. 
-They are setting the counting timing parameters, reading out the counting results and setting the discriminator levels
+"""
+SR400 Photon Counter Control Class
+Author: Xinyu Feng
+Created: 12/23/2025
 
-There is no integrated funciton for scanning the timing parameters. 
-If needed, there are two ways to realize:
-1. write a loop in your experiment code to scan the parameters within the loop
-2. use the commands of scanning for SR400 to realize, which I didn't write at this version
-'''
+This module provides a Python interface for controlling the Stanford Research Systems
+SR400 Gated Photon Counter via VISA (Virtual Instrument Software Architecture) communication.
+
+The SR400 is a dual-channel photon counter with gated counting capabilities, commonly used
+in quantum optics experiments, single-photon detection, and time-resolved measurements.
+
+Main Features:
+    - Dual-channel counting (Channels A and B) with independent or correlated modes
+    - Gated counting with configurable delay and width
+    - Multiple counting modes: Independent, Difference, Sum, and Mutual
+    - Discriminator level control for signal thresholding
+    - Time-resolved measurements with preset counting periods
+    - Scan mode support for parameter sweeps
+
+Common Usage:
+    The most frequently used methods are:
+    - counter_set(): Configure all counting parameters at once
+    - read_count(): Read count values from specified channels
+    - disc_level(): Set discriminator threshold levels
+
+Example:
+    >>> counter = SR400("GPIB0::12::INSTR")
+    >>> counter.counter_set(
+    ...     count_mode="INDEPENDENT",
+    ...     count_preset=1.0,
+    ...     count_period_num=10,
+    ...     dwell=0.1,
+    ...     sourceA="INPUT1",
+    ...     sourceB="INPUT2",
+    ...     gate_A_mode="FIXED",
+    ...     gate_B_mode="FIXED",
+    ...     gate_A_delay=0.0,
+    ...     gate_A_width=1e-3,
+    ...     gate_B_delay=0.0,
+    ...     gate_B_width=1e-3
+    ... )
+    >>> counter.count_start()
+    >>> count_a = counter.read_count("A")
+    >>> count_b = counter.read_count("B")
+
+Note:
+    There is no integrated function for scanning timing parameters. To perform scans:
+    1. Write a loop in your experiment code to scan parameters within the loop
+    2. Use the SR400's built-in scan commands (not implemented in this version)
+"""
 import pyvisa
 import time
-class SR400:    
+
+class SR400:
+
     def __init__(self, visa_name , timeout = 5000):
+        """
+        Initialize connection to the SR400 photon counter.
+        
+        Parameters:
+        -----------
+        visa_name : str
+            VISA resource name (e.g., "GPIB0::12::INSTR" or "USB0::0x0957::0x0407::INSTR")
+        timeout : int, optional
+            Communication timeout in milliseconds (default: 5000)
+        """
         rm = pyvisa.ResourceManager()
         self.pyvisa = rm.open_resource(visa_name)
+        print(self.pyvisa.query("*IDN?"))
         self.pyvisa.timeout = timeout
         self.gate_counter_dic = {"A":0, "B":1}
         self.gate_counter_dic_r = {"0\r\n":"A", "1\r\n":"B"}
@@ -23,6 +76,23 @@ class SR400:
     ### below are the methods to set gate parameters
 
     def gate_mode(self, counter = "A", mode = "CW", query = False):
+        """
+        Set or query the gate operating mode.
+        
+        Parameters:
+        -----------
+        counter : str, optional
+            Counter channel: "A" or "B" (default: "A")
+        mode : str, optional
+            Gate mode: "CW" (continuous wave), "FIXED" (fixed timing), or "SCAN" (scan mode) (default: "CW")
+        query : bool, optional
+            If True, query current mode instead of setting (default: False)
+        
+        Returns:
+        --------
+        str or None
+            Current gate mode if query=True, otherwise None
+        """
         mode_dic = {"CW":"0", "FIXED":"1", "SCAN":"2"}
         mode_dic_r = {"0\r\n":"CW", "1\r\n":"FIXED", "2\r\n":"SCAN"}
         #
@@ -35,6 +105,23 @@ class SR400:
                 print("Illegal keywords from gate_mode")
 
     def gate_delay(self, counter = "A", delay = 0.0, query = False):
+        """
+        Set or query the gate delay time.
+        
+        Parameters:
+        -----------
+        counter : str, optional
+            Counter channel: "A" or "B" (default: "A")
+        delay : float, optional
+            Gate delay in seconds, range: 0 to 999.2e-3 (default: 0.0)
+        query : bool, optional
+            If True, query current delay instead of setting (default: False)
+        
+        Returns:
+        --------
+        str or None
+            Current gate delay if query=True, otherwise None
+        """
         if query:
             return self.pyvisa.query("GD " + str(self.gate_counter_dic[counter]))
         elif 0 <= delay <= 999.2e-3:
@@ -46,6 +133,23 @@ class SR400:
             print("gate_delay delay exceeds the range")
 
     def gate_width(self, counter = "A", width = 1e-3, query = False):
+        """
+        Set or query the gate width duration.
+        
+        Parameters:
+        -----------
+        counter : str, optional
+            Counter channel: "A" or "B" (default: "A")
+        width : float, optional
+            Gate width in seconds, range: 0.005e-6 to 999.2e-3 (default: 1e-3)
+        query : bool, optional
+            If True, query current width instead of setting (default: False)
+        
+        Returns:
+        --------
+        str or None
+            Current gate width if query=True, otherwise None
+        """
         if query:
             return self.pyvisa.query("GW " + str(self.gate_counter_dic[counter]))
         elif 0.005e-6 <= width <= 999.2e-3:
@@ -59,6 +163,21 @@ class SR400:
     ### below are the methods to set the counting
     
     def count_mode(self, mode = "INDEPENDENT", query = False):
+        """
+        Set or query the counting mode.
+        
+        Parameters:
+        -----------
+        mode : str, optional
+            Counting mode: "INDEPENDENT", "DIFFERENCE", "SUM", or "MUTUAL" (default: "INDEPENDENT")
+        query : bool, optional
+            If True, query current mode instead of setting (default: False)
+        
+        Returns:
+        --------
+        str or None
+            Current counting mode if query=True, otherwise None
+        """
         mode_dic = {"INDEPENDENT":"0", "DIFFERENCE":"1", "SUM":"2", "MUTUAL":"3"}
         mode_dic_r = {"0\r\n":"INDEPENDENT", "1\r\n":"DIFFERENCE", "2\r\n":"SUM", "3\r\n":"MUTUAL"}
         if query:
@@ -70,6 +189,27 @@ class SR400:
                 print("incorrect mode from the count mode")
 
     def count_input(self, counter = "A", source = "INPUT1", query = False):
+        """
+        Set or query the input source for a counter.
+        
+        Parameters:
+        -----------
+        counter : str, optional
+            Counter channel: "A", "B", or "T" (default: "A")
+        source : str, optional
+            Input source: "10MHz", "INPUT1", "INPUT2", or "TRIG" (default: "INPUT1")
+            Note: Available sources depend on counter:
+                - Counter A: "10MHz" or "INPUT1"
+                - Counter B: "INPUT1" or "INPUT2"
+                - Counter T: "10MHz", "INPUT2", or "TRIG" (not "INPUT1")
+        query : bool, optional
+            If True, query current source instead of setting (default: False)
+        
+        Returns:
+        --------
+        str or None
+            Current input source if query=True, otherwise None
+        """
         source_dic = {"10MHz":0, "INPUT1":1, "INPUT2":2, "TRIG":3}
         source_dic_r = {"0\r\n":"10MHz", "1\r\n":"INPUT1", "2\r\n":"INPUT2", "3\r\n":"TRIG"}
         if query:
@@ -84,12 +224,47 @@ class SR400:
             print("wrong mapping from the count_input")    
 
     def count_period_number(self, number = 1e1, query = False):
+        """
+        Set or query the number of counting periods.
+        
+        Parameters:
+        -----------
+        number : float, optional
+            Number of counting periods (default: 1e1)
+        query : bool, optional
+            If True, query current period number instead of setting (default: False)
+        
+        Returns:
+        --------
+        str or None
+            Current period number if query=True, otherwise None
+        """
         if query:
             return self.pyvisa.query("NP")
         else:
             self.pyvisa.write("NP " + str(number))
 
     def count_preset(self, counter = "T", number = 1e0, query = False):
+        """
+        Set or query the preset count value or time.
+        
+        Parameters:
+        -----------
+        counter : str, optional
+            Counter channel: "B" or "T" (not "A") (default: "T")
+        number : float, optional
+            Preset value:
+                - For counter T: time in seconds (>= 1e-7) if T input is "10MHz", 
+                  or count value otherwise
+                - For counter B: count value (1.0 to 9e11) (default: 1e0)
+        query : bool, optional
+            If True, query current preset instead of setting (default: False)
+        
+        Returns:
+        --------
+        str or None
+            Current preset value if query=True, otherwise None
+        """
         TI = self.pyvisa.query("CI 2")
         # print(TI)
         if counter == "A":
@@ -122,6 +297,22 @@ class SR400:
         #     print("invalid number from the count_preset")
 
     def dwell_time(self, time = 0.0, query = False):
+        """
+        Set or query the dwell time between measurements.
+        
+        Parameters:
+        -----------
+        time : float, optional
+            Dwell time in seconds. Use 0.0 for external trigger mode.
+            Range: 2e-3 to 6e1, or 0.0 for external (default: 0.0)
+        query : bool, optional
+            If True, query current dwell time instead of setting (default: False)
+        
+        Returns:
+        --------
+        str or None
+            Current dwell time if query=True, otherwise None
+        """
         if query:
             return self.pyvisa.query("DT")
         elif time == 0:
@@ -134,21 +325,50 @@ class SR400:
     ### below are the method for the start and end
     
     def count_restart(self):
+        """
+        Reset counters and start counting.
+        
+        This is equivalent to pressing RESET followed by START on the front panel.
+        """
         self.pyvisa.write("CR") # CR command resets the counters
         self.pyvisa.write("CS") # CS command same as START key
 
     def count_reset(self):
+        """
+        Reset the counters.
+        
+        This is equivalent to pressing RESET on the front panel.
+        """
         self.pyvisa.write("CR") # CR command resets the counters
 
     def count_stop(self):
+        """
+        Stop counting.
+        
+        This is equivalent to pressing STOP on the front panel.
+        """
         self.pyvisa.write("CH") # same effect as pressing the STOP key
 
     def count_start(self):
+        """
+        Start counting.
+        
+        This is equivalent to pressing START on the front panel.
+        """
         self.pyvisa.write("CS") # same effect as pressing the START key
 
     ### below are methods for the panel bottoms
 
     def front_button(self, botton = "STOP"):
+        """
+        Simulate pressing a front panel button.
+        
+        Parameters:
+        -----------
+        botton : str, optional
+            Button name: "DOWN", "RIGHT", "LEVEL", "SETUP", "COM", "STOP", 
+            "LOCAL", "RESET", "LEFT", "UP", "MODE", "AGATE", "BGATE", or "START" (default: "STOP")
+        """
         keydic = {"DOWN": "0", "RIGHT": "1", "LEVEL": "2", "SETUP": "3",\
                     "COM": "4", "STOP": "5", "LOCAL": "6", "RESET": "7",\
                     "LEFT": "8", "UP": "9", "MODE": "10", "AGATE": "11",\
@@ -156,11 +376,35 @@ class SR400:
         self.pyvisa.write("CK " + keydic[botton])
 
     def message_display(self, message = ""):
+        """
+        Display a message on the instrument screen.
+        
+        Parameters:
+        -----------
+        message : str, optional
+            Message to display on the SR400 screen (default: "")
+        """
         self.pyvisa.write("MS" + message)
 
     ### below are method for readout
 
     def read_count(self, counter, position = -1):
+        """
+        Read count value from specified counter and position.
+        
+        Parameters:
+        -----------
+        counter : str
+            Counter channel: "A" or "B"
+        position : int, optional
+            Position in scan array. Use -1 for current/last position (default: -1)
+            Must be > 0 if specified
+        
+        Returns:
+        --------
+        int
+            Count value, or -1 if invalid parameters, or -2 if communication error
+        """
         try:
             if position == -1 or position > 0:
                 if counter == "A":
@@ -180,6 +424,33 @@ class SR400:
             return -2
 
     def read_entire_counts(self, counter, length, max_retries=10, retry_delay=0.05):
+        """
+        Read all counts from a scan measurement with retry logic.
+        
+        This method first verifies the scan is complete by reading the last point,
+        then reads all counts from position 1 to length.
+        
+        Parameters:
+        -----------
+        counter : str
+            Counter channel: "A" or "B"
+        length : int
+            Number of scan points to read (positions 1 to length)
+        max_retries : int, optional
+            Maximum number of retry attempts for each read (default: 10)
+        retry_delay : float, optional
+            Delay in seconds between retry attempts (default: 0.05)
+        
+        Returns:
+        --------
+        list of int
+            List of count values. Failed reads are represented as -2.
+        
+        Raises:
+        -------
+        TimeoutError
+            If the final scan point cannot be read after max_retries attempts
+        """
         # Try to read the last point (to make sure the scan is finished)
         retries = 0
         last_count = -1
@@ -237,6 +508,18 @@ class SR400:
     ### below are the methods for discriminators
 
     def disc_level(self, counter, level, slope = True):
+        """
+        Set discriminator threshold level and slope.
+        
+        Parameters:
+        -----------
+        counter : str
+            Counter channel: "A" or "B"
+        level : float
+            Discriminator threshold level in volts, range: -0.3 to 0.3
+        slope : bool, optional
+            If True, trigger on positive slope; if False, trigger on negative slope (default: True)
+        """
         if -0.3<=level<=0.3:
             self.pyvisa.write("DS " + str(self.gate_counter_dic[counter]) + "," + ("0" if slope else "1"))
             self.pyvisa.write("DL " + str(self.gate_counter_dic[counter]) + "," + str(level))
@@ -247,6 +530,44 @@ class SR400:
 
     def counter_set(self, count_mode, count_preset, count_period_num, dwell, sourceA, sourceB, gate_A_mode, gate_B_mode, gate_A_delay = -1, gate_A_width = -1,
                      gate_B_delay = -1, gate_B_width = -1):
+        """
+        Configure all counting parameters in one integrated call.
+        
+        This is a convenience method that sets multiple parameters at once and
+        displays the current configuration. It is one of the most commonly used methods.
+        
+        Parameters:
+        -----------
+        count_mode : str
+            Counting mode: "INDEPENDENT", "DIFFERENCE", "SUM", or "MUTUAL"
+        count_preset : float
+            Preset count value or time for counter T
+        count_period_num : float
+            Number of counting periods
+        dwell : float
+            Dwell time in seconds (0.0 for external trigger)
+        sourceA : str
+            Input source for counter A: "10MHz" or "INPUT1"
+        sourceB : str
+            Input source for counter B: "INPUT1" or "INPUT2"
+        gate_A_mode : str
+            Gate A mode: "CW", "FIXED", or "SCAN" (SCAN not supported in this function)
+        gate_B_mode : str
+            Gate B mode: "CW", "FIXED", or "SCAN" (SCAN not supported in this function)
+        gate_A_delay : float, optional
+            Gate A delay in seconds (required if gate_A_mode="FIXED", default: -1)
+        gate_A_width : float, optional
+            Gate A width in seconds (required if gate_A_mode="FIXED", default: -1)
+        gate_B_delay : float, optional
+            Gate B delay in seconds (required if gate_B_mode="FIXED", default: -1)
+        gate_B_width : float, optional
+            Gate B width in seconds (required if gate_B_mode="FIXED", default: -1)
+        
+        Note:
+        -----
+        If gate mode is "FIXED", the corresponding delay and width must be provided.
+        SCAN mode is not supported in this integrated function.
+        """
         self.count_mode(mode = count_mode)
         current_mode = self.count_mode(query=True)
 
@@ -269,7 +590,7 @@ class SR400:
         current_AI = self.count_input(counter="A",query=True)
         self.count_input(counter="B",source=sourceB)
         current_BI = self.count_input(counter="B",query=True)
-        print("---------------------------------------")
+        print("-"*60)
         print("The photon counter is now set to:\n\n" + 
               "Counting Mode: " + current_mode +
              "\nT Input: " + current_TI + 
@@ -302,7 +623,7 @@ class SR400:
             print("Invaid gate B mode in this function")
         else:
             print("\nThe gate B is set to: CW")
-        print("---------------------------------------")
+        print("-"*60)
 
     def flush_stale_response(self):
         """Flush unread garbage from the VISA buffer without resetting the device."""

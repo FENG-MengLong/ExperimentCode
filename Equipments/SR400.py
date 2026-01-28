@@ -66,6 +66,7 @@ class SR400:
         """
         rm = pyvisa.ResourceManager()
         self.pyvisa = rm.open_resource(visa_name)
+        print(self.pyvisa.query("*IDN?"))
         self.pyvisa.timeout = timeout
         self.gate_counter_dic = {"A":0, "B":1}
         self.gate_counter_dic_r = {"0\r\n":"A", "1\r\n":"B"}
