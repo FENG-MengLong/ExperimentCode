@@ -31,6 +31,9 @@ class Agilent:
     def stop_output(self):
         self.inst.write(":OUTP off")
 
+    def close(self):
+        self.inst.close()
+
     def set_frequency(self, frequency):
         if frequency<=self.freq_limit:
             self.inst.write(":FREQ:CW " + str(frequency))
