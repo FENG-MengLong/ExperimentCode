@@ -1,5 +1,7 @@
 """
-04/25/25
+Stepper motor control class
+Author: Carlos Owens
+Created: 04/25/25
 
 This class is used to communincate with the WeederTech WTMCD-M which controls the stepper motor. 
 

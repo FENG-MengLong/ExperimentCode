@@ -1,3 +1,8 @@
+"""
+MC box control class
+Author: Carlos Owens
+"""
+
 from mcculw import ul
 from mcculw.enums import ULRange, BoardInfo, InfoType, InterfaceType, DigitalPortType, ChannelType, ScanOptions
 import numpy as np
