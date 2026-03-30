@@ -1,2 +1,5 @@
 2026.1.28
 MCBOX no need to specify the board_num when use
+
+2026.3.29
+Update the LeCroy Scope code
