@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
+import cv2
 import pandas as pd
 from datetime import datetime
 import os, re, hashlib
@@ -107,6 +107,106 @@ class PlotSaver:
 	
 		# --- Save the data and hash to hash_log ---
 		_save_csv(x, y, Z, xlabel, ylabel, zlabel, data_hash, plot_id, csv_filename, today_display, notes)
+
+
+	def save_frame(
+	    self,
+	    frame,
+	    xlabel="pixel_x",
+	    ylabel="pixel_y",
+	    zlabel="intensity",
+	    normalize_to_uint8=False,
+	    save_png=True,
+	    save_csv=False,
+	    figsize=(6.4, 4.8),
+	    cmap="viridis",
+	    notes=None,
+	):
+	    """
+	    Save a 2D image frame using the same date-folder / ID / hash policy as Plot3D/Plot2D.
+	
+	    If save_csv=True, the frame is also plotted with a title.
+	    Hash is recorded only when CSV is saved.
+	    """
+	    frame = np.asarray(frame)
+	    if frame.ndim != 2:
+	        raise ValueError(f"frame must be a 2D array, got shape {frame.shape}")
+	
+	    x = np.arange(frame.shape[1])
+	    y = np.arange(frame.shape[0])
+	    Z = frame.T
+	
+	    today_raw = datetime.now()
+	    today_display = today_raw.strftime("%Y/%m/%d")
+	
+	    save_dir, today_str = _get_save_dir(self.root_dir, today_raw)
+	
+	    plot_id, data_hash, already_saved = _get_plot_id(
+	        x, y, Z, xlabel, ylabel, zlabel, save_dir, today_str
+	    )
+	
+	    title = f"{today_display}: ID {plot_id}"
+	    png_filename = os.path.join(save_dir, f"{today_str}_ID{plot_id}.png")
+	    csv_filename = os.path.join(save_dir, f"{today_str}_ID{plot_id}.csv")
+	
+	    if save_csv:
+	        _showPlot3D(
+	            x=x,
+	            y=y,
+	            Z=frame,
+	            xlabel=xlabel,
+	            ylabel=ylabel,
+	            zlabel=zlabel,
+	            title=title,
+	            figsize=figsize,
+	            cmap=cmap,
+	            notes=notes,
+	        )
+			_save_csv(
+	            x=x,
+	            y=y,
+	            Z=Z,
+	            xlabel=xlabel,
+	            ylabel=ylabel,
+	            zlabel=zlabel,
+	            data_hash=data_hash,
+	            plot_id=plot_id,
+	            csv_filename=csv_filename,
+	            today_display=today_display,
+	            notes=notes,
+	        )
+	
+	    if already_saved:
+	        return {
+	            "id": plot_id,
+	            "already_saved": "duplicated",
+	            "png_path": png_filename if save_png else None,
+	            "csv_path": csv_filename if save_csv else None,
+	            "hash": data_hash,
+	        }
+	
+	    if save_png:
+	        image_to_save = frame
+	        if normalize_to_uint8:
+	            image_to_save = cv2.normalize(frame, None, 0, 255, cv2.NORM_MINMAX)
+	            image_to_save = image_to_save.astype(np.uint8)
+	        else:
+	            if image_to_save.dtype in (np.float32, np.float64):
+	                image_to_save = cv2.normalize(frame, None, 0, 65535, cv2.NORM_MINMAX)
+	                image_to_save = image_to_save.astype(np.uint16)
+	
+	        success = cv2.imwrite(str(png_filename), image_to_save)
+	        if not success:
+	            raise IOError(f"Failed to save image to: {png_filename}")
+	        
+	
+	    return {
+	        "id": plot_id,
+	        "already_saved": "successful",
+	        "png_path": png_filename if save_png else None,
+	        "csv_path": csv_filename if save_csv else None,
+	        "hash": data_hash,
+	    }
 
 
 # compute unique hash for x, y, Z, and labels
@@ -346,3 +446,6 @@ def _save_csv(x, y, Z, xlabel, ylabel, zlabel, data_hash, plot_id, csv_filename,
 
 
 
+
+
+	
