@@ -6,10 +6,11 @@ import cv2
 
 try:
     # If you are on Windows and using the relative-path DLL setup script
-    from windows_setup import configure_path
+    from .windows_setup import configure_path
     configure_path()
 except ImportError:
     pass
+    print(1)
 
 from thorlabs_tsi_sdk.tl_camera import TLCameraSDK, OPERATION_MODE
 
@@ -68,6 +69,7 @@ class Zelux:
 
         This method only configures the camera. It does not arm the camera.
         """
+        self.camera.disarm()
         self.camera.exposure_time_us = exposure_time_us
         self.camera.image_poll_timeout_ms = image_poll_timeout_ms
         self.camera.frames_per_trigger_zero_for_unlimited = 1
@@ -123,7 +125,7 @@ class Zelux:
         buffer_frame_count: int = 2,
     ) -> np.ndarray:
         """Perform a complete single-frame acquisition."""
-        self.setup_single_acquisition(
+        self.set_single_acquisition(
             exposure_time_us=exposure_time_us,
             trigger_mode=trigger_mode,
             image_poll_timeout_ms=image_poll_timeout_ms,
