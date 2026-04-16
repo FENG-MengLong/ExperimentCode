@@ -71,7 +71,7 @@ class BNC575:
 
 		if AMP == "TTL":
 			self.pyvisa.write(f":Pulse{ch_num}:Output:Mode TTL")
-		elif 5 <= AMP <= 20:
+		elif 2 <= AMP <= 20:
 			self.pyvisa.write(f":Pulse{ch_num}:Output:Mode ADJ")
 			self.pyvisa.write(f":Pulse{ch_num}:Output:AMPL {AMP}")
 		self.pyvisa.query("*OPC?")
