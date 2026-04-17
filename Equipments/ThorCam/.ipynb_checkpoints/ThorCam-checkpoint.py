@@ -30,6 +30,7 @@ class Zelux:
 
     def __init__(self, camera_serial: str):
         """Open one camera by serial number."""
+        
         self.sdk = TLCameraSDK()
         available_cameras = list(self.sdk.discover_available_cameras())
 
@@ -47,6 +48,7 @@ class Zelux:
         self.camera_serial = camera_serial
         self.camera = self.sdk.open_camera(camera_serial)
         self._is_armed = False
+        
 
     def set_trigger_mode(self, trigger_mode: str = "software") -> None:
         """Set the camera trigger mode."""
@@ -69,19 +71,21 @@ class Zelux:
 
         This method only configures the camera. It does not arm the camera.
         """
-        self.camera.disarm()
+        self.disarm()
         self.camera.exposure_time_us = exposure_time_us
         self.camera.image_poll_timeout_ms = image_poll_timeout_ms
         self.camera.frames_per_trigger_zero_for_unlimited = 1
         self.set_trigger_mode(trigger_mode)
+        self.disarm()
 
     def arm(self, buffer_frame_count: int = 2) -> None:
         """Arm the camera for acquisition."""
         if self._is_armed:
-            raise RuntimeError("Camera is already armed.")
+            pass
 
-        self.camera.arm(buffer_frame_count)
-        self._is_armed = True
+        else:
+            self.camera.arm(buffer_frame_count)
+            self._is_armed = True
 
     def disarm(self) -> None:
         """Disarm the camera."""
