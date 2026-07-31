@@ -51,9 +51,10 @@ class BNC575:
 
 		return f"{P:.2e}"
 
-	def channel_set(self, channel: str, width, delay, AMP="TTL", SYNC="TO", MUX="-1"):
+	def channel_set(self, channel: str, width, delay, AMP="TTL", polarity = 1,SYNC="TO", MUX="-1"):
 		ch_dic = {"A":1, "B":2, "C":3, "D":4, "E":5, "F":6, "G":7, "H":8}
 		MUX_dic = {"A":1, "B":2, "C":4, "D":8, "E":16, "F":32, "G":64, "H":128}
+		polarity_dic = {1:"NORMal", -1:"INVerted"}
 		BMUX = int(MUX, 2)
 
 		if channel not in ch_dic:
@@ -67,6 +68,8 @@ class BNC575:
 		self.pyvisa.write(f":Pulse{ch_num}:Width {width}")
 		self.pyvisa.query("*OPC?")
 		self.pyvisa.write(f":Pulse{ch_num}:Delay {delay}")
+		self.pyvisa.query("*OPC?")
+		self.pyvisa.write(f":Pulse{ch_num}:POLarity {polarity_dic[polarity]}")
 		self.pyvisa.query("*OPC?")
 
 		if AMP == "TTL":
@@ -131,7 +134,8 @@ class BNC575:
 						sub_pulse[0],
 						sub_pulse[1],
 						abs_delay,
-						sub_pulse[3]
+						sub_pulse[3],
+						sub_pulse[4]
 					])
 					temp_time_markers.append(abs_delay + sub_pulse[1])
 				time_marker = max(temp_time_markers)
@@ -143,7 +147,8 @@ class BNC575:
 					pulse[0],
 					pulse[1],
 					time_marker,
-					pulse[3]
+					pulse[3],
+					pulse[4]
 				])
 				time_marker += pulse[1]
 
@@ -157,8 +162,8 @@ class BNC575:
 		print(expanded_pulses)
 
 		for pulse in expanded_pulses:
-			pulse_channel, pulse_width, delay, pulse_output = pulse
-			self.channel_set(pulse_channel, pulse_width, delay, pulse_output)
+			pulse_channel, pulse_width, delay, pulse_output, pulse_polarity = pulse
+			self.channel_set(pulse_channel, pulse_width, delay, pulse_output, pulse_polarity)
 
 		self.rearm_all()
 		return expanded_pulses
