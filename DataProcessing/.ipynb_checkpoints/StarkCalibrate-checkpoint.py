@@ -87,8 +87,8 @@ def symmetry_error(x, y, Z, x_center):
 
 # used to readout Stark map data from folder
 def Stark_map_readout(date: str, plot_id: int):
-    # root_dir = 'X:/migratedData/Rydberg_QIS/data'
-    root_dir = f"/run/user/1000/gvfs/smb-share:server=lsa-graithel-win.turbo.storage.umich.edu,share=lsa-graithel/migratedData/Rydberg_QIS/data"   # Linux
+    root_dir = 'X:/migratedData/Rydberg_QIS/data'
+    # root_dir = f"/run/user/1000/gvfs/smb-share:server=lsa-graithel-win.turbo.storage.umich.edu,share=lsa-graithel/migratedData/Rydberg_QIS/data"   # Linux
     X, Y, Z, notes = Readout.read_saved_csv_by_id(root_dir = root_dir, date = date, plot_id = plot_id)
     Z = Z.T # flip this array so the dimensions match X and Y
 
