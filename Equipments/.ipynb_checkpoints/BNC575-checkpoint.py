@@ -31,6 +31,7 @@ class BNC575:
 			print("Mode is invalid, use upper case: CONTINUOUS, SINGLE, BURST")
 
 		M = self.pyvisa.query(":Pulse0:Mode?")[:-2]
+		# print(self.pyvisa.query(":Pulse0:Period?"))
 		P = float(self.pyvisa.query(":Pulse0:Period?")[:-2])
 
 		if M == "BURS":
