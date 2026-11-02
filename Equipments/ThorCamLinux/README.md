@@ -124,8 +124,12 @@ with Camera("35390") as camera:  # omit serial only if exactly one camera exists
 ```
 
 The files `image.tif` and `image.tif.json` must not already exist. `output_path()`
-creates unique timestamped names. Saving creates parent directories. TIFF, PNG
-and NPY snapshots preserve raw pixels, rather than display-scaled data. TIFF
+uses only the chosen prefix and extension (for example, `shot.tif`), without a
+timestamp or random ID. This also applies to the live monitor's snapshots and
+MP4 recordings. Change the prefix before saving another file in the same format;
+existing images, videos, and metadata are never overwritten. Saving creates
+parent directories. TIFF, PNG and NPY snapshots preserve raw pixels, rather than
+display-scaled data. TIFF
 requires `tifffile`; PNG requires Pillow. Use `frame.image.astype(float)` before
 background subtraction/optical-density processing to avoid unsigned underflow.
 

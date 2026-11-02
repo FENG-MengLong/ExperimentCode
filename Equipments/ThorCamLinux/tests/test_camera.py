@@ -227,10 +227,14 @@ class CameraTests(unittest.TestCase):
             path = output_path(directory, "shot", ".npy")
             save_frame(frame, path)
             np.testing.assert_array_equal(np.load(path), frame.image)
-            metadata = json.loads(path.with_suffix(".npy.json").read_text())
+            original_image = path.read_bytes()
+            original_metadata = path.with_suffix(".npy.json").read_bytes()
+            metadata = json.loads(original_metadata)
             self.assertEqual(metadata["bit_depth"], 12)
             with self.assertRaises(FileExistsError):
-                save_frame(frame, path)
+                save_frame(frame, output_path(directory, "shot", ".npy"))
+            self.assertEqual(path.read_bytes(), original_image)
+            self.assertEqual(path.with_suffix(".npy.json").read_bytes(), original_metadata)
             np.testing.assert_array_equal(np.load(path), frame.image)
 
     def test_existing_sidecar_not_overwritten(self):
@@ -261,9 +265,17 @@ class CameraTests(unittest.TestCase):
             path = save_frame(frame, Path(directory) / "raw.tif")
             np.testing.assert_array_equal(tifffile.imread(path), frame.image)
 
-    def test_output_names_unique(self):
+    def test_output_names_use_only_prefix_and_extension(self):
         with tempfile.TemporaryDirectory() as directory:
-            self.assertNotEqual(output_path(directory), output_path(directory))
+            folder = Path(directory) / "snapshots"
+            self.assertEqual(output_path(folder), folder.resolve() / "zelux.tif")
+            self.assertTrue(folder.is_dir())
+            for suffix in (".tif", ".png", ".npy", ".mp4"):
+                self.assertEqual(
+                    output_path(folder, "95-105MHz_15tones_cali_3", suffix),
+                    folder.resolve() / f"95-105MHz_15tones_cali_3{suffix}",
+                )
+            self.assertEqual(output_path(folder), output_path(folder))
             with self.assertRaises(ValueError):
                 output_path(directory, "../unsafe")
 

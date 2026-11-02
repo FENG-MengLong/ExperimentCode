@@ -1,11 +1,9 @@
 """Raw snapshots and bounded, asynchronous 8-bit MP4 recording."""
 
-from datetime import datetime, timezone
 import json
 from pathlib import Path
 from queue import Empty, Full, Queue
 from threading import Event, Thread
-import uuid
 
 import numpy as np
 
@@ -13,13 +11,15 @@ from .camera import Frame
 
 
 def output_path(directory, prefix: str = "zelux", suffix: str = ".tif") -> Path:
-    """Create the output directory and generate a collision-resistant filename."""
+    """Create the directory and return prefix + suffix, without extra identifiers.
+
+    Saving to this path still refuses to overwrite images, videos, or metadata.
+    """
     if not prefix or Path(prefix).name != prefix or prefix in (".", ".."):
         raise ValueError("prefix must be a filename, not a path")
     directory = Path(directory).expanduser().resolve()
     directory.mkdir(parents=True, exist_ok=True)
-    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S_%fZ")
-    return directory / f"{prefix}_{stamp}_{uuid.uuid4().hex[:8]}{suffix}"
+    return directory / f"{prefix}{suffix}"
 
 
 def save_frame(frame: Frame, path) -> Path:
