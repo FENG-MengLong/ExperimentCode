@@ -1,0 +1,7 @@
+# Install using the same interpreter as your Jupyter kernel.
+# Install thorlabs_tsi_sdk separately from the vendor's Linux SDK distribution.
+numpy
+ipywidgets>=8
+Pillow
+tifffile
+opencv-python-headless

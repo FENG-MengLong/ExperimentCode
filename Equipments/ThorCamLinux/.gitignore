@@ -1,0 +1,4 @@
+# Local proprietary vendor distribution and binaries; keep out of source control.
+/vendor/
+*.zip
+__pycache__/

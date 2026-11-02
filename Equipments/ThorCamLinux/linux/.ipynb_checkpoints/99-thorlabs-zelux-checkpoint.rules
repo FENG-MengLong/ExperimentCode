@@ -1,0 +1,5 @@
+# Local setup for fengxy on this machine (UID 114406359).
+# Grant this user access to the connected Zelux USB product only.
+# Numeric UID avoids requiring a directory-service lookup by udev.
+# If copied to another machine/account, replace OWNER with that user's `id -u`.
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTR{idVendor}=="1313", ATTR{idProduct}=="4002", OWNER="114406359", MODE="0600"
