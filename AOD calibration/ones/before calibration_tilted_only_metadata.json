@@ -1,0 +1,42 @@
+{
+  "image": null,
+  "frame": 0,
+  "n_spots": 25,
+  "fit_config": {
+    "y_half_width": 65,
+    "smooth_sigma": 1.0,
+    "prominence_fraction": 0.12,
+    "min_peak_distance": 10,
+    "x_margin": 40,
+    "core_half_width": 10,
+    "strip_half_width": 10,
+    "sigma_bounds": [
+      0.8,
+      12.0
+    ]
+  },
+  "camera_pixel_size_um": 3.45,
+  "magnification": 25.0,
+  "effective_pixel_size_um": 0.138,
+  "array_angle_deg": 2.289319739327481,
+  "array_origin_xy_px": [
+    553.4998450892372,
+    533.0370506594539
+  ],
+  "direction_xy": [
+    0.9992018585502832,
+    0.039945536292053795
+  ],
+  "xp_reference_px": -0.5,
+  "r_squared": 0.9651314767734943,
+  "rmse_counts": 17.758766176425087,
+  "mean_separation_um": 4.086282790341637,
+  "relative_intensity_std": 0.22048126197952514,
+  "quality_issues": [],
+  "spot_order": "along array toward increasing camera x; verify RF-tone mapping",
+  "amplitude_ratio_definition": "background-subtracted fitted peak amplitude / arithmetic mean; not integrated power",
+  "parameter_order": "b0, b1, then (amplitude, xp_center_px, sigma_px) per spot",
+  "local_core_parameter_order": "background, amplitude, x_center, y_center, sigma_x, sigma_y",
+  "weighting": "unweighted least squares",
+  "profile": "bilinear interpolation, transverse mean"
+}
