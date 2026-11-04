@@ -1,0 +1,2 @@
+ValueError: Open AWG configuration differs: close it explicitly, then rerun with matching settings.
+Playback stopped; partial raw data retained.

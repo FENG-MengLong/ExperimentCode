@@ -34,6 +34,10 @@ def analyze_1D_tweezer_array(
         Repeated calls with the same directory/prefix overwrite exports.
 
     Returned spots are ordered along the array, toward increasing camera x.
+    fitted_intensity: 1D array of unnormalized, background-subtracted Gaussian
+        peak amplitudes in camera counts from the transversely averaged strip.
+        Same values as spots['amplitude_mean_counts']; not calibrated optical power.
+    intensity_ratio: fitted_intensity / fitted_intensity.mean(), in the same order.
     Ratios measure background-subtracted peak intensity, not integrated power.
     No camera acquisition, RF communication, or hardware changes occur here.
     """
@@ -439,6 +443,7 @@ def analyze_1D_tweezer_array(
         (directory / f'{stem}_metadata.json').write_text(json.dumps(metadata, indent=2))
     return {
         'spots': combined_results, 'intensity_ratio': ratios.copy(),
+        'fitted_intensity': results['amplitude_mean_counts'].to_numpy(dtype=float, copy=True),
         'correction_ratio': correction, 'angle_deg': angle_deg,
         'r_squared': float(r_squared), 'rmse_counts': float(rmse),
         'quality_issues': issues, 'profile': profile, 'metadata': metadata,

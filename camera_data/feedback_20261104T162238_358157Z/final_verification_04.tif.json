@@ -1,0 +1,14 @@
+{
+  "serial": "33834",
+  "frame_number": 1,
+  "host_time_ns": 1793809373383655417,
+  "camera_time_ns": 4644169000000,
+  "bit_depth": 10,
+  "exposure_us": 142,
+  "sensor_type": "0",
+  "shape": [
+    1080,
+    1440
+  ],
+  "dtype": "uint16"
+}
